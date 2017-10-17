@@ -26,6 +26,9 @@ void arp_reply(pcap_t *handle,uint8_t *src_ip,uint8_t *dst_ip,uint8_t *my_mac, u
     struct libnet_arp_hdr *arp_h=(libnet_arp_hdr *)malloc(LIBNET_ARP_H);
     struct libnet_ethernet_hdr *eth_h=(libnet_ethernet_hdr *)malloc(LIBNET_ETH_H);
     struct my_ip_hdr *ip_h=(my_ip_hdr *)malloc(LIBNET_ARP_ETH_IP_H-LIBNET_ARP_H);
+
+
+
     uint8_t packet[200];
 
     memcpy(eth_h->ether_dhost,target_mac,ETHER_ADDR_LEN);
@@ -48,7 +51,7 @@ void arp_reply(pcap_t *handle,uint8_t *src_ip,uint8_t *dst_ip,uint8_t *my_mac, u
     memcpy(packet+LIBNET_ETH_H,arp_h,LIBNET_ARP_H);
     memcpy(packet+LIBNET_ETH_H+LIBNET_ARP_H,ip_h,MY_IP_HDR);
 
-    for(int i=0;i<10;i++) {
+    for(int i=0;i<5;i++) {
         if(pcap_sendpacket(handle,packet,LIBNET_ETH_H + LIBNET_ARP_H + MY_IP_HDR)){
             printf("error");
         }
@@ -61,6 +64,8 @@ void arp_request(pcap_t *handle,uint8_t *my_mac,uint8_t *my_ip,uint8_t *target_i
     struct libnet_arp_hdr *arp_h=(libnet_arp_hdr *)malloc(LIBNET_ARP_H);
     struct libnet_ethernet_hdr *eth_h=(libnet_ethernet_hdr *)malloc(LIBNET_ETH_H);
     struct my_ip_hdr *ip_h=(my_ip_hdr *)malloc(LIBNET_ARP_ETH_IP_H-LIBNET_ARP_H);
+
+
     uint8_t packet[200];
 
     memset(eth_h->ether_dhost,0xff,6); // arp request's dest mac ff:ff:ff:ff:ff:ff
@@ -76,7 +81,7 @@ void arp_request(pcap_t *handle,uint8_t *my_mac,uint8_t *my_ip,uint8_t *target_i
     memcpy(ip_h->sender_mac,my_mac,ETHER_ADDR_LEN);
     memcpy(ip_h->sender_ip,my_ip,4);
     memset(ip_h->target_mac,0,ETHER_ADDR_LEN);
-    memcpy(ip_h->target_ip,my_ip,4);
+    memcpy(ip_h->target_ip,target_ip,4);
 
     memcpy(packet,eth_h,LIBNET_ETH_H);
     memcpy(packet+LIBNET_ETH_H,arp_h,LIBNET_ARP_H);
@@ -140,7 +145,7 @@ bool receive_packet(pcap_t* handle,uint8_t *target_ip,uint8_t *target_mac){
     }
     else{
         myip_h=(struct my_ip_hdr*)(packet+LIBNET_ETH_H+LIBNET_ARP_H);
-        if(!memcmp(myip_h->sender_ip,target_ip,ETHER_ADDR_LEN)) {
+        if(!memcmp(myip_h->sender_ip,target_ip,4)) {
             memcpy(target_mac, myip_h->sender_mac, ETHER_ADDR_LEN);
             return 1;
         }

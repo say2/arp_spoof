@@ -21,6 +21,6 @@ struct spoof_arg{
 
 
 
-void *f_arpspoof(pcap_t *handle,spoof_arg **sa,int pair);
+void f_arpspoof(pcap_t *handle,spoof_arg *sa,int pair);
 void *infect(void *arg);
-bool spoof_packet(pcap_t* handle, spoof_arg **sa, int pair);
+bool spoof_packet(pcap_t* handle, spoof_arg *sa, int pair);

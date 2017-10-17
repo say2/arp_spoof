@@ -10,16 +10,21 @@ void usage(){
 
 
 int main(int argc, char* argv[]) {
+    /*
     if ( argc < 4 ){
         usage();
         return -1;
-    }
+    }*/
+    argc=4;
+    argv[1]="en0";
+    argv[2]="192.168.1.179";
+    argv[3]="192.168.1.1";
     char *dev=argv[1];
 
     int pair = 0;
 
     pthread_t p_th[THREAD_N];
-    struct spoof_arg *sa[100];
+    struct spoof_arg sa[100];
 
     int status;
 
@@ -36,7 +41,7 @@ int main(int argc, char* argv[]) {
         mask = 0;
     }
 
-    pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+    pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1, errbuf);
 
     if (handle == NULL) {
         fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);
@@ -49,17 +54,16 @@ int main(int argc, char* argv[]) {
         inet_pton(AF_INET, argv[i*2+1], dst_ip);
 
         send_arp(handle, my_ip, src_ip, dst_ip, my_mac, src_mac, dst_mac);
+        sa[i-1].handle=handle;
+        sa[i-1].dst_ip=dst_ip;
+        sa[i-1].src_ip=src_ip;
+        sa[i-1].dst_mac=dst_mac;
+        sa[i-1].my_mac=my_mac;
+        sa[i-1].src_mac = src_mac;
 
-        sa[i-1]->handle=handle;
-        sa[i-1]->dst_ip=dst_ip;
-        sa[i-1]->src_ip=src_ip;
-        sa[i-1]->dst_mac=dst_mac;
-        sa[i-1]->my_mac=my_mac;
-        sa[i-1]->src_mac = src_mac;
         pthread_create(&p_th[i-1],NULL,infect,(void *)&sa[i-1]);
         pair++;
     }
-
     f_arpspoof(handle,sa,pair);
     for(int i=1;i<(argc/2);i++){
         pthread_join(p_th[i-1],(void **)&status);
