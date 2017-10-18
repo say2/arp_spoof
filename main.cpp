@@ -10,17 +10,17 @@ void usage(){
 
 
 int main(int argc, char* argv[]) {
-
+/*
     if ( argc < 4 ){
         usage();
         return -1;
     }
-    /*
+*/
     argc=4;
     argv[1]="en0";
-    argv[2]="192.168.1.179";
+    argv[2]="192.168.1.102";
     argv[3]="192.168.1.1";
-*/
+
     char *dev=argv[1];
 
     int pair = 0;
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
         mask = 0;
     }
 
-    pcap_t *handle = pcap_open_live(dev, BUFSIZ, 1, 1, errbuf);
+    pcap_t *handle = pcap_open_live(dev, BUFSIZ, 0, 1, errbuf);
 
     if (handle == NULL) {
         fprintf(stderr, "couldn't open device %s: %s\n", dev, errbuf);

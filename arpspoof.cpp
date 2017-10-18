@@ -41,33 +41,34 @@ bool spoof_packet(pcap_t* handle,spoof_arg *sa,int pair){
         return 0;
 
     eth_h=(struct libnet_ethernet_hdr*)packet;
-    if(ntohs(eth_h->ether_type) != ETHERTYPE_IP)
-        return 1;
 
-    ipv4_h=(libnet_ipv4_hdr*)(packet+LIBNET_ETH_H);
+
+
     for(i=0;i<pair;i++) {
-        if (!memcmp(&ipv4_h->ip_src, sa[i].src_ip, 4) && !memcmp(&ipv4_h->ip_dst, sa[i].dst_ip, 4)) {
+        if (!memcmp(eth_h->ether_shost, sa[i].src_mac, 6) && !memcmp(eth_h->ether_dhost, sa[i].my_mac, 6)) {
             //spoofed packet
 
             //analyze packet
+            if(ntohs(eth_h->ether_type) != ETHERTYPE_IP) {
+                ipv4_h=(libnet_ipv4_hdr*)(packet+LIBNET_ETH_H);
+                printf("from");
+                print_ip(sa[i].src_ip);
+                printf("to");
+                print_ip(sa[i].dst_ip);
+                if (ipv4_h->ip_p == IPPROTO_TCP) {
+                    tcp_hdr = (libnet_tcp_hdr *) (packet + LIBNET_IPV4_H + LIBNET_ETH_H);
+                    printf("src_port : %d\n", ntohs(tcp_hdr->th_sport));
+                    printf("des_port : %d\n", ntohs(tcp_hdr->th_dport));
+                    data_loc = LIBNET_IPV4_H + LIBNET_ETH_H + tcp_hdr->th_off * 4;
+                    len = header->len - data_loc;
+                    if (len > 16) {
+                        len = 16;
+                    }
+                    for (i = data_loc; i < data_loc + len; i++) {
+                        printf("%hhx ", *(packet + i));
+                    }
 
-            printf("from");
-            print_ip(sa[i].src_ip);
-            printf("to");
-            print_ip(sa[i].dst_ip);
-            if(ipv4_h->ip_p == IPPROTO_TCP) {
-                tcp_hdr = (libnet_tcp_hdr *) (packet + LIBNET_IPV4_H + LIBNET_ETH_H);
-                printf("src_port : %d\n", ntohs(tcp_hdr->th_sport));
-                printf("des_port : %d\n", ntohs(tcp_hdr->th_dport));
-                data_loc=LIBNET_IPV4_H+LIBNET_ETH_H+tcp_hdr->th_off*4;
-                len=header->len-data_loc;
-                if(len>16){
-                    len=16;
                 }
-                for(i=data_loc;i<data_loc+len;i++){
-                    printf("%hhx ",*(packet+i));
-                }
-
             }
             //relay packet
             memcpy(eth_h->ether_shost, sa[i].my_mac, ETHER_ADDR_LEN);
