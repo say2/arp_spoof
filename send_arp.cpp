@@ -17,7 +17,7 @@ void send_arp(pcap_t *handle,uint8_t *my_ip,uint8_t *src_ip,uint8_t *dst_ip,uint
     arp_request(handle,my_mac,my_ip,src_ip,src_mac);
     arp_request(handle,my_mac,my_ip,dst_ip,dst_mac);
 
-    arp_reply(handle,src_ip,dst_ip,my_mac,src_mac);
+    arp_reply(handle,dst_ip,src_ip,my_mac,src_mac);
 
     puts("Success send arp!");
 }
