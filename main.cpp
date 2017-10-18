@@ -10,15 +10,17 @@ void usage(){
 
 
 int main(int argc, char* argv[]) {
-    /*
+
     if ( argc < 4 ){
         usage();
         return -1;
-    }*/
+    }
+    /*
     argc=4;
     argv[1]="en0";
     argv[2]="192.168.1.179";
     argv[3]="192.168.1.1";
+*/
     char *dev=argv[1];
 
     int pair = 0;

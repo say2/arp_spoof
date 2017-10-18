@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include <unistd.h>
 #include "send_arp.h"
+#include <unistd.h>
+
+
 
 struct spoof_arg{
     pcap_t *handle;
