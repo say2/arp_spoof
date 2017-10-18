@@ -11,7 +11,6 @@
 
 struct spoof_arg{
     pcap_t *handle;
-    uint8_t *my_ip;
     uint8_t *src_ip;
     uint8_t *dst_ip;
     uint8_t *my_mac;
