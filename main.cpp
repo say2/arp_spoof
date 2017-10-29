@@ -10,12 +10,13 @@ void usage(){
 
 
 int main(int argc, char* argv[]) {
-    int debug=1;
+    int debug=0;
     if ( argc < 4 && debug==0){
         usage();
         return -1;
     }
     if ( debug ){
+        puts("debug mode");
         argc=4;
         argv[1]="en0";
         argv[2]="192.168.1.102";
